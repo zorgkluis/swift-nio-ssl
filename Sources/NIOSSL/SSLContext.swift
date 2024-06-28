@@ -372,6 +372,10 @@ public final class NIOSSLContext {
             }
         }
 
+        // CRL CRL
+        NIOSSLContext.configureCRL(context: context, configuration: configuration)
+        // CRL CRL
+
         if configuration.encodedApplicationProtocols.count > 0 {
             try NIOSSLContext.setAlpnProtocols(configuration.encodedApplicationProtocols, context: context)
             NIOSSLContext.setAlpnCallback(context: context)

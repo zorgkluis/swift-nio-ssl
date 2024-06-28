@@ -285,7 +285,11 @@ public struct TLSConfiguration {
 
     /// The private key associated with the leaf certificate.
     public var privateKey: NIOSSLPrivateKeySource?
-    
+
+    public var crlCheck = false
+
+    public var crlCheckAll = false
+
     /// PSK Client Callback to get the key based on hint and identity.
     public var pskClientCallback: NIOPSKClientIdentityCallback? = nil
     
