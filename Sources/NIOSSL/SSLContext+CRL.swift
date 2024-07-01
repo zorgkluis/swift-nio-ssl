@@ -36,7 +36,7 @@ extension NIOSSLContext {
          }*/
 
         CNIOBoringSSL_X509_STORE_set_lookup_crls(x509_store, lookup_crls)
-        CNIOBoringSSL_X509_STORE_set_verify_cb(x509_store, verify_cb)
+        //CNIOBoringSSL_X509_STORE_set_verify_cb(x509_store, verify_cb)
         getCRL = configuration.getCRL
 
         let trustParams = CNIOBoringSSL_SSL_CTX_get0_param(context)!
@@ -71,11 +71,6 @@ fileprivate func existingCRL(x509_store_ctx: OpaquePointer?, x509_name: OpaquePo
 
 
 fileprivate func verify_cb(preverify_ok: Int32, x509_store_ctx: OpaquePointer?) -> Int32 {
-    //let ssl_ex_data_idx = CNIOBoringSSL_SSL_get_ex_data_X509_STORE_CTX_idx()
-    //let ssl = CNIOBoringSSL_X509_STORE_CTX_get_ex_data(x509_store_ctx, ssl_ex_data_idx)
-
-    //let depth = CNIOBoringSSL_X509_STORE_CTX_get_error_depth(x509_store_ctx)
-
     let error_code = (preverify_ok == 1) ? X509_V_OK : CNIOBoringSSL_X509_STORE_CTX_get_error(x509_store_ctx)
     if (error_code == X509_V_ERR_UNABLE_TO_GET_CRL) {
         return 1
