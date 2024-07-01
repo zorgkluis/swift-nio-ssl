@@ -14,10 +14,8 @@ import NIOCore
 import Darwin.C
 #elseif canImport(Musl)
 import Musl
-import FoundationNetworking
 #elseif os(Linux) || os(FreeBSD) || os(Android)
 import Glibc
-import FoundationNetworking
 #else
 #error("unsupported os")
 #endif
@@ -39,6 +37,7 @@ extension NIOSSLContext {
 
         CNIOBoringSSL_X509_STORE_set_lookup_crls(x509_store, lookup_crls)
         CNIOBoringSSL_X509_STORE_set_verify_cb(x509_store, verify_cb)
+        getCRL = configuration.getCRL
 
         let trustParams = CNIOBoringSSL_SSL_CTX_get0_param(context)!
         CNIOBoringSSL_X509_VERIFY_PARAM_set_flags(trustParams, CUnsignedLong(X509_V_FLAG_CRL_CHECK))
@@ -50,6 +49,10 @@ extension NIOSSLContext {
 
 
 // MARK: - CRL Lookup
+
+public typealias GetCRLCallback = @Sendable (String) throws -> CertificateRevokeList?
+
+fileprivate var getCRL: GetCRLCallback?
 
 fileprivate func existingCRL(x509_store_ctx: OpaquePointer?, x509_name: OpaquePointer?) -> OpaquePointer? {
     let crl = try? CertificateRevokeList(
@@ -164,7 +167,7 @@ fileprivate func download_crl_from_dist_point(
         }
 
         print("  Found CRL URL: \(url)")
-        if let crl = downloadCRL(from: url) {
+        if let crl = try? getCRL?(url) {
             print("  Downloaded CRL from \(url)")
             return crl
         } else {
@@ -175,21 +178,5 @@ fileprivate func download_crl_from_dist_point(
     return nil
 }
 
-var downloadedCRLs: [CertificateRevokeList] = []
-
-func downloadCRL(from url: String) -> CertificateRevokeList? {    
-    guard let url = URL(string: url) else {
-        return nil
-    }
-    guard let data = try? Data(contentsOf: url) else {
-        return nil
-    }
-
-    let crl = try? CertificateRevokeList(bytes: [UInt8](data), format: .der)
-    if let crl {
-        downloadedCRLs.append(crl)
-    }
-    return crl
-}
 
 

@@ -290,6 +290,8 @@ public struct TLSConfiguration {
 
     public var crlCheckAll = false
 
+    public var getCRL: GetCRLCallback?
+
     /// PSK Client Callback to get the key based on hint and identity.
     public var pskClientCallback: NIOPSKClientIdentityCallback? = nil
     
