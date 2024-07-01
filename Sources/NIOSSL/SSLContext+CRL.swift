@@ -14,8 +14,10 @@ import NIOCore
 import Darwin.C
 #elseif canImport(Musl)
 import Musl
+import FoundationNetworking
 #elseif os(Linux) || os(FreeBSD) || os(Android)
 import Glibc
+import FoundationNetworking
 #else
 #error("unsupported os")
 #endif
@@ -175,7 +177,7 @@ fileprivate func download_crl_from_dist_point(
 
 var downloadedCRLs: [CertificateRevokeList] = []
 
-func downloadCRL(from url: String) -> CertificateRevokeList? {
+func downloadCRL(from url: String) -> CertificateRevokeList? {    
     guard let url = URL(string: url) else {
         return nil
     }
