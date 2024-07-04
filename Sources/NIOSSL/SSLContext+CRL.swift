@@ -36,7 +36,7 @@ extension NIOSSLContext {
          }*/
 
         CNIOBoringSSL_X509_STORE_set_lookup_crls(x509_store, lookup_crls)
-        //CNIOBoringSSL_X509_STORE_set_verify_cb(x509_store, verify_cb)
+        CNIOBoringSSL_X509_STORE_set_verify_cb(x509_store, verify_cb)
         getCRL = configuration.getCRL
 
         let trustParams = CNIOBoringSSL_SSL_CTX_get0_param(context)!
@@ -54,21 +54,6 @@ public typealias GetCRLCallback = @Sendable (String) throws -> CertificateRevoke
 
 fileprivate var getCRL: GetCRLCallback?
 
-fileprivate func existingCRL(x509_store_ctx: OpaquePointer?, x509_name: OpaquePointer?) -> OpaquePointer? {
-    let crl = try? CertificateRevokeList(
-        file:  "/Users/onno/Downloads/zandbak/pkioprivservg1.crl",
-        format: .der
-    )
-    guard let crl else { return nil }
-
-    let crls = CNIOBoringSSL_sk_X509_CRL_new_null()
-    CNIOBoringSSL_sk_X509_CRL_push(crls, crl._ref)
-    /*let _ = crl.withUnsafeMutableX509CRLPointer { ref in
-     CNIOBoringSSL_sk_X509_CRL_push(crls, ref)
-     }*/
-    return crls
-}
-
 
 fileprivate func verify_cb(preverify_ok: Int32, x509_store_ctx: OpaquePointer?) -> Int32 {
     let error_code = (preverify_ok == 1) ? X509_V_OK : CNIOBoringSSL_X509_STORE_CTX_get_error(x509_store_ctx)
@@ -80,24 +65,13 @@ fileprivate func verify_cb(preverify_ok: Int32, x509_store_ctx: OpaquePointer?) 
 
 
 fileprivate func lookup_crls(x509_store_ctx: OpaquePointer?, x509_name: OpaquePointer?) -> OpaquePointer? {
-    let ssl_ex_data_idx = CNIOBoringSSL_SSL_get_ex_data_X509_STORE_CTX_idx()
-    //let ssl = CNIOBoringSSL_X509_STORE_CTX_get_ex_data(x509_store_ctx, ssl_ex_data_idx)
-    //let error_stream =  CNIOBoringSSL_SSL_get_ex_data(OpaquePointer(ssl), 0)
-
     let current_cert = CNIOBoringSSL_X509_STORE_CTX_get_current_cert(x509_store_ctx)
     guard let current_cert else {
         return nil
     }
 
     let depth = CNIOBoringSSL_X509_STORE_CTX_get_error_depth(x509_store_ctx)
-    //let current_cert_subject = CNIOBoringSSL_X509_get_subject_name(current_cert)
-    // CNIOBoringSSL_X509_NAME_print_ex_fp(error_stream?.assumingMemoryBound(to: FILE.self), current_cert_subject, 0, 0)
-
     print("* lookup_crls() called with depth=\(depth)")
-    /*print("  Looking up CRL for certificate: ")
-     X509_NAME_print_ex_fp(error_stream, current_cert_subject, 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);
-     fprintf(error_stream, "\n");*/
-
 
     let crl_dist_points = OpaquePointer(
         CNIOBoringSSL_X509_get_ext_d2i(current_cert, NID_crl_distribution_points, nil, nil)
@@ -172,6 +146,3 @@ fileprivate func download_crl_from_dist_point(
 
     return nil
 }
-
-
-
