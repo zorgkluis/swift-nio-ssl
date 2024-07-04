@@ -88,6 +88,7 @@ fileprivate func lookup_crls(x509_store_ctx: OpaquePointer?, x509_name: OpaquePo
         }
 
         let crls = CNIOBoringSSL_sk_X509_CRL_new_null()
+        CNIOBoringSSL_X509_up_ref(crl._ref)
         CNIOBoringSSL_sk_X509_CRL_push(crls, crl._ref)
         return crls
     }
