@@ -41,6 +41,8 @@ extension NIOSSLContext {
 
         let trustParams = CNIOBoringSSL_SSL_CTX_get0_param(context)!
         CNIOBoringSSL_X509_VERIFY_PARAM_set_flags(trustParams, CUnsignedLong(X509_V_FLAG_CRL_CHECK))
+        CNIOBoringSSL_X509_VERIFY_PARAM_set_flags(trustParams, CUnsignedLong(X509_V_FLAG_NO_CHECK_TIME))
+
         if configuration.crlCheckAll {
             CNIOBoringSSL_X509_VERIFY_PARAM_set_flags(trustParams, CUnsignedLong(X509_V_FLAG_CRL_CHECK_ALL))
         }
@@ -70,7 +72,7 @@ fileprivate func lookup_crls(x509_store_ctx: OpaquePointer?, x509_name: OpaquePo
         return nil
     }
 
-    let depth = CNIOBoringSSL_X509_STORE_CTX_get_error_depth(x509_store_ctx)    
+    let depth = CNIOBoringSSL_X509_STORE_CTX_get_error_depth(x509_store_ctx)
 
     let crl_dist_points = OpaquePointer(
         CNIOBoringSSL_X509_get_ext_d2i(current_cert, NID_crl_distribution_points, nil, nil)
