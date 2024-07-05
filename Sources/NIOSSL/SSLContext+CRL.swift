@@ -70,8 +70,7 @@ fileprivate func lookup_crls(x509_store_ctx: OpaquePointer?, x509_name: OpaquePo
         return nil
     }
 
-    let depth = CNIOBoringSSL_X509_STORE_CTX_get_error_depth(x509_store_ctx)
-    print("* lookup_crls() called with depth=\(depth)")
+    let depth = CNIOBoringSSL_X509_STORE_CTX_get_error_depth(x509_store_ctx)    
 
     let crl_dist_points = OpaquePointer(
         CNIOBoringSSL_X509_get_ext_d2i(current_cert, NID_crl_distribution_points, nil, nil)
@@ -136,12 +135,8 @@ fileprivate func download_crl_from_dist_point(
             continue
         }
 
-        print("  Found CRL URL: \(url)")
         if let crl = try? getCRL?(url) {
-            print("  Downloaded CRL from \(url)")
             return crl
-        } else {
-            print("  Failed to download CRL from \(url)")
         }
     }
 
